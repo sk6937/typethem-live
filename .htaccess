@@ -1,0 +1,93 @@
+# TypeThem — static-export .htaccess for Hostinger (Apache / LiteSpeed).
+# Deploys to the web root alongside the exported HTML tree. This replaces the
+# Cloudflare `_headers` file (that convention is ignored by Apache/LiteSpeed).
+#
+# NOTE ON HTTPS: do NOT force HTTPS here — enable Hostinger's own "Force HTTPS"
+# toggle in hPanel (SSL section) instead. Doubling the redirect in .htaccess can
+# loop behind Hostinger's edge. The commented block at the bottom is a fallback
+# only for a host without a panel HTTPS toggle.
+
+# ----------------------------------------------------------------------
+# Correct MIME types (some static hosts mis-serve these)
+# ----------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType image/svg+xml                 .svg
+  AddType application/manifest+json     .webmanifest
+  AddType application/xml               .xml
+  AddType text/xsl                      .xsl
+  AddType image/x-icon                  .ico
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Caching. Hashed theme/upload assets are immutable for a year; HTML must
+# revalidate so content edits go live on the next deploy without a purge.
+# ----------------------------------------------------------------------
+<IfModule mod_headers.c>
+  <FilesMatch "\.(?:css|js|svg|png|jpg|jpeg|gif|webp|ico|woff2?|ttf|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(?:xml|xsl)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+
+  # Site-wide security headers (carried over from the Cloudflare _headers set).
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+  # Enable ONLY after HTTPS is confirmed working on the live domain:
+  # Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# Belt-and-suspenders expiry for hosts without mod_headers.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css                "access plus 1 year"
+  ExpiresByType application/javascript  "access plus 1 year"
+  ExpiresByType image/svg+xml           "access plus 1 year"
+  ExpiresByType image/png               "access plus 1 year"
+  ExpiresByType image/x-icon            "access plus 1 year"
+  ExpiresByType font/woff2              "access plus 1 year"
+  ExpiresByType text/html               "access plus 0 seconds"
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Compression
+# ----------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/xml text/plain \
+    application/javascript application/json application/xml \
+    application/manifest+json image/svg+xml
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Routing
+# ----------------------------------------------------------------------
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Canonical host: non-www. Redirect www.typethem.com -> typethem.com (301).
+  # Only fires when the host actually starts with www, so it can't loop.
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # Bare /favicon.ico requests (bots, older browsers) resolve to the theme icon.
+  RewriteRule ^favicon\.ico$ /wp-content/themes/typethem/assets/img/favicon.ico [L]
+</IfModule>
+
+# Simply Static writes a real 404.html at the export root.
+ErrorDocument 404 /404.html
+
+# ----------------------------------------------------------------------
+# Fallback HTTPS force — leave commented; use hPanel's Force HTTPS instead.
+# ----------------------------------------------------------------------
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} off
+#   RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+# </IfModule>

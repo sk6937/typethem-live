@@ -1,0 +1,452 @@
+/*
+ * Ported from _build/typethem-templates.html (source of truth for design).
+ * Prototype-only chrome (the view-switcher control bar, the ACF field-map
+ * overlay) is intentionally not ported — it existed to demo both templates
+ * side by side, not as part of the real site.
+ */
+/* ---------------------------------------------------------------- palette
+ * Three-state theming. Bare :root carries the complete light palette, so no
+ * colour is ever defined *only* inside a media/attribute block. The dark
+ * values are then redefined twice: once under prefers-color-scheme (guarded
+ * with :not([data-theme="light"]) so an explicit light choice still wins on a
+ * dark-OS machine), and once under [data-theme="dark"] so the header toggle
+ * wins in both directions. The toggle sets data-theme on <html>; an inline
+ * head script (functions.php) applies the stored choice before first paint so
+ * there's no flash of the wrong theme.
+ */
+:root {
+	color-scheme: light;
+	--tt-paper: #F5F6F8;
+	--tt-card: #FFFFFF;
+	--tt-ink: #16181D;
+	--tt-ink-soft: #565B66;
+	--tt-line: #E4E7EC;
+	--tt-line-soft: #EEF0F3;
+	--tt-accent: #2D3BE0;
+	--tt-accent-ink: #1B25A8;
+	--tt-accent-wash: #EEF0FE;
+	--tt-warm: #E2892A;
+	--tt-warm-wash: #FBF0E1;
+	--tt-ok: #1E8A5A;
+	--tt-keycap-top: #FFFFFF;
+	--tt-keycap-bevel: #D6DAE2;
+	--tt-keycap-deep: #C3C8D2;
+	--tt-keycap-shadow: rgba(20,24,35,.16);
+	/* Inverted surfaces (toast, active language pill) — on light these are the
+	 * ink colour with white type; on dark that inverts, so they're tokens
+	 * rather than hardcoded var(--tt-ink)/#fff pairs. */
+	--tt-invert-bg: #16181D;
+	--tt-invert-ink: #FFFFFF;
+	--tt-header-bg: rgba(245,246,248,.82);
+	--tt-r: 14px;
+	--tt-shadow: 0 1px 2px rgba(20,24,35,.06), 0 8px 24px rgba(20,24,35,.06);
+	--tt-disp: "Space Grotesk", system-ui, sans-serif;
+	--tt-body: "IBM Plex Sans", system-ui, sans-serif;
+	--tt-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		color-scheme: dark;
+		--tt-paper: #0E1014;
+		--tt-card: #171A21;
+		--tt-ink: #ECEEF2;
+		--tt-ink-soft: #99A1AF;
+		--tt-line: #272C36;
+		--tt-line-soft: #1E222A;
+		--tt-accent: #7C8AFF;
+		--tt-accent-ink: #A6B0FF;
+		--tt-accent-wash: #191E33;
+		--tt-warm: #F0A85A;
+		--tt-warm-wash: #2A2013;
+		--tt-ok: #45C08A;
+		--tt-keycap-top: #232833;
+		--tt-keycap-bevel: #171B23;
+		--tt-keycap-deep: #0A0C10;
+		--tt-keycap-shadow: rgba(0,0,0,.55);
+		--tt-invert-bg: #ECEEF2;
+		--tt-invert-ink: #0E1014;
+		--tt-header-bg: rgba(14,16,20,.82);
+		--tt-shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+	}
+}
+
+:root[data-theme="dark"] {
+	color-scheme: dark;
+	--tt-paper: #0E1014;
+	--tt-card: #171A21;
+	--tt-ink: #ECEEF2;
+	--tt-ink-soft: #99A1AF;
+	--tt-line: #272C36;
+	--tt-line-soft: #1E222A;
+	--tt-accent: #7C8AFF;
+	--tt-accent-ink: #A6B0FF;
+	--tt-accent-wash: #191E33;
+	--tt-warm: #F0A85A;
+	--tt-warm-wash: #2A2013;
+	--tt-ok: #45C08A;
+	--tt-keycap-top: #232833;
+	--tt-keycap-bevel: #171B23;
+	--tt-keycap-deep: #0A0C10;
+	--tt-keycap-shadow: rgba(0,0,0,.55);
+	--tt-invert-bg: #ECEEF2;
+	--tt-invert-ink: #0E1014;
+	--tt-header-bg: rgba(14,16,20,.82);
+	--tt-shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+/* .tt-themed is added to every front-end body (functions.php), so the About
+ * page and the /tools/ structural parent — which both fall through to
+ * GeneratePress's default template and carry no tt_page_type — still get the
+ * site palette and the header/footer chrome. */
+body.tt-themed,
+body.single-character,
+body.single-guide,
+body.tt-app {
+	margin: 0;
+	background: var(--tt-paper);
+	color: var(--tt-ink);
+	font-family: var(--tt-body);
+	font-size: 16px;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tt-page h1, .tt-page h2, .tt-page h3 {
+	font-family: var(--tt-disp);
+	font-weight: 600;
+	line-height: 1.15;
+	letter-spacing: -.01em;
+	margin: 0;
+}
+.tt-page a { color: var(--tt-accent-ink); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.tt-page .wrap { max-width: 860px; margin: 0 auto; padding: 34px 20px 90px; }
+.tt-page .mono { font-family: var(--tt-mono); }
+
+/* ---------- crumb ---------- */
+.tt-page .crumb { font-size: 13px; color: var(--tt-ink-soft); margin-bottom: 22px; font-family: var(--tt-mono); }
+.tt-page .crumb a { color: var(--tt-ink-soft); text-decoration: none; }
+.tt-page .eyebrow { font-family: var(--tt-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--tt-accent); font-weight: 500; }
+
+/* ---------- keycap (the signature element) ---------- */
+.keycap { --sz: 120px; width: var(--sz); height: var(--sz); border: 0; cursor: pointer; padding: 0;
+	border-radius: 16px; background: var(--tt-keycap-top);
+	box-shadow: 0 1px 0 var(--tt-keycap-bevel), 0 6px 0 var(--tt-keycap-deep), 0 10px 18px var(--tt-keycap-shadow);
+	display: grid; place-items: center; transition: transform .09s ease, box-shadow .09s ease;
+	font-family: var(--tt-disp); position: relative; }
+.keycap .glyph { font-size: calc(var(--sz) * .48); line-height: 1; color: var(--tt-ink); font-weight: 600; }
+.keycap:hover { transform: translateY(1px); box-shadow: 0 1px 0 var(--tt-keycap-bevel), 0 5px 0 var(--tt-keycap-deep), 0 8px 14px var(--tt-keycap-shadow); }
+.keycap:active, .keycap.pressed { transform: translateY(6px);
+	box-shadow: 0 1px 0 var(--tt-keycap-bevel), 0 0 0 var(--tt-keycap-deep), 0 2px 6px var(--tt-keycap-shadow); }
+.keycap:focus-visible { outline: 3px solid var(--tt-accent); outline-offset: 4px; }
+.keycap .hint { position: absolute; bottom: 8px; font-family: var(--tt-mono); font-size: 10px; color: var(--tt-ink-soft); letter-spacing: .04em; }
+.keycap.mini { --sz: 60px; border-radius: 11px; }
+.keycap.mini .glyph { font-weight: 600; }
+.keycap.mini .hint { display: none; }
+
+.copied { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(12px);
+	background: var(--tt-invert-bg); color: var(--tt-invert-ink); font-family: var(--tt-mono); font-size: 13px; padding: 9px 16px; border-radius: 10px;
+	opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 80; }
+.copied.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.copied b { color: var(--tt-warm); }
+
+/* ---------- hero ---------- */
+.tt-page .hero { display: flex; gap: 30px; align-items: center; margin: 6px 0 30px; }
+.tt-page .hero .meta { flex: 1; min-width: 0; }
+.tt-page .hero h1 { font-size: clamp(28px, 4.4vw, 42px); margin: 10px 0 8px; }
+.tt-page .hero .name { font-family: var(--tt-mono); font-size: 14px; color: var(--tt-ink-soft); }
+
+/* ---------- answer / TL;DR block (the AEO unit) — plain, no decoration ---------- */
+.tt-page .answer { background: var(--tt-card); border: 1px solid var(--tt-line);
+	border-radius: var(--tt-r); padding: 20px 22px; box-shadow: var(--tt-shadow); margin: 0 0 30px; }
+.tt-page .answer .lbl { font-family: var(--tt-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--tt-ink-soft); font-weight: 600; }
+.tt-page .answer p { margin: 10px 0 0; font-size: 16px; color: var(--tt-ink); }
+.tt-page .answer .kbd { font-family: var(--tt-mono); font-size: 13px; background: var(--tt-line-soft); border: 1px solid var(--tt-line);
+	border-radius: 6px; padding: 2px 7px; white-space: nowrap; color: var(--tt-ink); }
+
+/* ---------- section ---------- */
+.tt-page .sec { margin: 38px 0; }
+.tt-page .sec > h2 { font-size: 22px; margin-bottom: 6px; display: flex; align-items: baseline; gap: 12px; }
+.tt-page .sec > h2 .n { font-family: var(--tt-mono); font-size: 12px; color: var(--tt-accent); font-weight: 500; }
+.tt-page .sec > p.lead { color: var(--tt-ink-soft); margin: 0 0 16px; }
+
+/* ---------- data table (mono) ---------- */
+.tt-page .dt { width: 100%; border-collapse: collapse; background: var(--tt-card); border: 1px solid var(--tt-line);
+	border-radius: var(--tt-r); overflow: hidden; box-shadow: var(--tt-shadow); }
+.tt-page .dt th, .tt-page .dt td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--tt-line-soft); font-size: 14px; vertical-align: top; }
+.tt-page .dt th { background: var(--tt-paper); font-family: var(--tt-mono); font-size: 11px; letter-spacing: .05em;
+	text-transform: uppercase; color: var(--tt-ink-soft); font-weight: 600; }
+.tt-page .dt tr:last-child td { border-bottom: 0; }
+.tt-page .dt td.method { font-weight: 600; width: 160px; }
+.tt-page .dt code { font-family: var(--tt-mono); font-size: 13px; background: var(--tt-line-soft); border-radius: 5px; padding: 2px 7px; color: var(--tt-accent-ink); }
+.tt-page .copybtn { font-family: var(--tt-mono); font-size: 12px; border: 1px solid var(--tt-line); background: var(--tt-card);
+	border-radius: 7px; padding: 4px 10px; cursor: pointer; color: var(--tt-ink-soft); }
+.tt-page .copybtn:hover { border-color: var(--tt-accent); color: var(--tt-accent); }
+
+/* ---------- platform cards (guide) ---------- */
+.tt-page .plat { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tt-page .pcard { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: var(--tt-r); padding: 16px 18px; box-shadow: var(--tt-shadow); }
+.tt-page .pcard h3 { font-size: 15px; font-family: var(--tt-disp); margin-bottom: 6px; display: flex; gap: 8px; align-items: center; }
+.tt-page .pcard h3 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tt-accent); }
+.tt-page .pcard ol { margin: 6px 0 0; padding-left: 18px; font-size: 14px; color: var(--tt-ink-soft); }
+.tt-page .pcard .steps b { color: var(--tt-ink); font-family: var(--tt-mono); font-size: 13px; }
+
+/* ---------- live tester ---------- */
+.tt-page .tester { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: var(--tt-r); padding: 18px 20px; box-shadow: var(--tt-shadow); }
+.tt-page .tester input { width: 100%; font-family: var(--tt-disp); font-size: 26px; border: 1.5px solid var(--tt-line);
+	border-radius: 10px; padding: 12px 14px; margin-top: 10px; color: var(--tt-ink); background: var(--tt-paper); }
+.tt-page .tester input:focus { outline: 0; border-color: var(--tt-accent); background: var(--tt-card); }
+
+/* ---------- language usage ---------- */
+.tt-page .lang { display: flex; flex-wrap: wrap; gap: 10px; }
+.tt-page .chip { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 999px; padding: 7px 14px; font-size: 13px; }
+.tt-page .chip b { font-family: var(--tt-mono); }
+.tt-page .words { font-family: var(--tt-disp); font-size: 20px; color: var(--tt-ink); letter-spacing: .01em; }
+.tt-page .words span { color: var(--tt-accent); }
+
+/* ---------- related keycap row ---------- */
+.tt-page .rel { display: flex; gap: 12px; flex-wrap: wrap; }
+.tt-page .rel a { display: grid; place-items: center; gap: 6px; text-decoration: none; color: var(--tt-ink-soft); font-size: 12px; font-family: var(--tt-mono); }
+
+/* ---------- faq ---------- */
+.tt-page .faq details { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 12px; padding: 2px 18px; margin-bottom: 10px; box-shadow: var(--tt-shadow); }
+.tt-page .faq summary { font-family: var(--tt-disp); font-weight: 600; font-size: 15px; padding: 14px 0; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+.tt-page .faq summary::-webkit-details-marker { display: none; }
+.tt-page .faq summary::after { content: "+"; color: var(--tt-accent); font-family: var(--tt-mono); }
+.tt-page .faq details[open] summary::after { content: "\2013"; }
+.tt-page .faq p { margin: 0 0 14px; color: var(--tt-ink-soft); font-size: 14px; }
+
+.tt-page .note { font-size: 12px; color: var(--tt-ink-soft); font-family: var(--tt-mono); margin-top: 8px; }
+
+/* ---------- language switcher (i18n) ----------
+ * Unscoped, not .tt-page-scoped: the same switcher markup is rendered both
+ * inside an article (below the breadcrumb) and in the site footer's legal bar,
+ * which sits outside .tt-page entirely — scoping it left the footer copy
+ * rendering as bare run-together text ("Read inENFRESDEPT"). */
+.langbar { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--tt-ink-soft); flex-wrap: wrap; }
+.tt-page .langbar { margin: -8px 0 22px; }
+.langbar > span { font-family: var(--tt-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-right: 2px; }
+.lg { font-family: var(--tt-mono); font-size: 12px; font-weight: 500; text-decoration: none; color: var(--tt-ink-soft);
+	border: 1px solid var(--tt-line); border-radius: 7px; padding: 4px 9px; background: var(--tt-card); }
+.lg:hover { border-color: var(--tt-accent); color: var(--tt-accent); }
+.lg.active { background: var(--tt-invert-bg); color: var(--tt-invert-ink); border-color: var(--tt-invert-bg); }
+
+/* ---------- copy-as control ---------- */
+.tt-page .copyas { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.tt-page .copyas button { font-family: var(--tt-mono); font-size: 12px; border: 1px solid var(--tt-line); background: var(--tt-card);
+	color: var(--tt-ink-soft); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.tt-page .copyas button:hover { border-color: var(--tt-accent); color: var(--tt-accent); }
+
+/* ---------- localized keyboard note ---------- */
+.tt-page .kbdnote { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 12px;
+	padding: 14px 16px; margin-top: 14px; font-size: 13px; color: var(--tt-ink-soft); box-shadow: var(--tt-shadow); }
+.tt-page .kbdnote b { color: var(--tt-ink); font-family: var(--tt-mono); font-size: 12px; }
+
+/* ---------- on-this-page TOC ---------- */
+.tt-page .toc { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: var(--tt-r);
+	padding: 16px 20px; margin: 0 0 30px; box-shadow: var(--tt-shadow); }
+.tt-page .toc .lbl { font-family: var(--tt-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--tt-ink-soft); font-weight: 600; }
+.tt-page .toc ol { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.tt-page .toc a { font-size: 14px; text-decoration: none; color: var(--tt-ink); display: flex; gap: 8px; align-items: baseline; }
+.tt-page .toc a .tn { font-family: var(--tt-mono); font-size: 12px; color: var(--tt-accent); }
+.tt-page .toc a:hover { color: var(--tt-accent); }
+
+/* ---------- Phase 5: search box (homepage + tool pages) ---------- */
+.tt-page .searchbox { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: var(--tt-r);
+	padding: 18px 20px; box-shadow: var(--tt-shadow); margin: 0 0 24px; }
+.tt-page .searchbox input { width: 100%; font-family: var(--tt-disp); font-size: 22px; border: 1.5px solid var(--tt-line);
+	border-radius: 10px; padding: 12px 14px; color: var(--tt-ink); background: var(--tt-paper); }
+.tt-page .searchbox input:focus { outline: 0; border-color: var(--tt-accent); background: var(--tt-card); }
+.tt-page .searchbox .hint { font-family: var(--tt-mono); font-size: 12px; color: var(--tt-ink-soft); margin-top: 8px; }
+
+.tt-page .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 18px; }
+.tt-page .rescard { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--tt-card);
+	border: 1px solid var(--tt-line); border-radius: 12px; padding: 12px 8px; text-decoration: none; color: var(--tt-ink-soft);
+	font-size: 11px; font-family: var(--tt-mono); text-align: center; }
+.tt-page .rescard .glyph { font-size: 30px; font-family: var(--tt-disp); color: var(--tt-ink); }
+.tt-page .rescard .alt { color: var(--tt-accent-ink); }
+.tt-page .empty { color: var(--tt-ink-soft); font-size: 14px; padding: 20px 0; }
+
+/* ---------- Phase 5: pillar hub / collection grid ---------- */
+.tt-page .hubgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.tt-page .hubcard { display: block; background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: var(--tt-r);
+	padding: 18px 20px; box-shadow: var(--tt-shadow); text-decoration: none; }
+.tt-page .hubcard .glyph { font-size: 30px; font-family: var(--tt-disp); color: var(--tt-ink); display: block; margin-bottom: 8px; }
+.tt-page .hubcard .t { font-family: var(--tt-disp); font-weight: 600; color: var(--tt-ink); font-size: 15px; }
+.tt-page .hubcard .sub { font-family: var(--tt-mono); font-size: 12px; color: var(--tt-ink-soft); margin-top: 4px; display: block; }
+
+/* ---------- Phase 5: accent builder ---------- */
+.tt-page .builder { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tt-page .builder select { font-family: var(--tt-mono); font-size: 14px; border: 1.5px solid var(--tt-line); border-radius: 8px;
+	padding: 10px 12px; background: var(--tt-card); color: var(--tt-ink); }
+.tt-page .builder .out { font-size: 44px; font-family: var(--tt-disp); min-width: 70px; text-align: center; }
+
+/* ---------- Phase 5: fancy-text generator ---------- */
+.tt-page .gen-in { width: 100%; font-family: var(--tt-body); font-size: 18px; border: 1.5px solid var(--tt-line);
+	border-radius: 10px; padding: 12px 14px; color: var(--tt-ink); background: var(--tt-paper); resize: vertical; min-height: 60px; }
+.tt-page .gen-in:focus { outline: 0; border-color: var(--tt-accent); background: var(--tt-card); }
+.tt-page .gen-out { display: grid; gap: 10px; margin-top: 18px; }
+.tt-page .gen-row { display: flex; align-items: center; gap: 12px; background: var(--tt-card); border: 1px solid var(--tt-line);
+	border-radius: 12px; padding: 12px 16px; box-shadow: var(--tt-shadow); }
+.tt-page .gen-row .style { font-family: var(--tt-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+	color: var(--tt-ink-soft); width: 110px; flex-shrink: 0; }
+.tt-page .gen-row .out { flex: 1; font-size: 18px; color: var(--tt-ink); word-break: break-word; }
+
+/* =========================================================== site chrome
+ * Header + footer replace GeneratePress's own (see functions.php, which
+ * unhooks generate_construct_header/footer). These deliberately sit outside
+ * the .tt-page scope: the About page and the /tools/ structural parent fall
+ * through to GP's default template and carry no .tt-page wrapper, but still
+ * need the site chrome.
+ */
+.tt-header { position: sticky; top: 0; z-index: 60; background: var(--tt-header-bg);
+	-webkit-backdrop-filter: saturate(180%) blur(12px); backdrop-filter: saturate(180%) blur(12px);
+	border-bottom: 1px solid var(--tt-line); }
+.tt-header .bar { max-width: 1200px; margin: 0 auto; padding: 0 20px; height: 62px;
+	display: flex; align-items: center; gap: 18px; }
+
+/* Brand: the speech-bubble logo mark + wordmark. */
+.tt-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+.tt-brand .mark { width: 30px; height: 30px; display: block; flex-shrink: 0; }
+.tt-brand .word { font-family: var(--tt-disp); font-weight: 700; font-size: 18px;
+	letter-spacing: -.02em; color: var(--tt-ink); }
+
+.tt-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.tt-nav a { font-family: var(--tt-body); font-size: 14px; font-weight: 500; text-decoration: none;
+	color: var(--tt-ink-soft); padding: 7px 12px; border-radius: 8px; white-space: nowrap; }
+.tt-nav a:hover { color: var(--tt-ink); background: var(--tt-line-soft); }
+.tt-nav a[aria-current="page"] { color: var(--tt-accent-ink); background: var(--tt-accent-wash); }
+
+.tt-header .util { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.tt-iconbtn { width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer;
+	background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 9px; color: var(--tt-ink-soft); padding: 0; }
+.tt-iconbtn:hover { border-color: var(--tt-accent); color: var(--tt-accent); }
+.tt-iconbtn:focus-visible { outline: 3px solid var(--tt-accent); outline-offset: 2px; }
+.tt-iconbtn svg { width: 17px; height: 17px; display: block; }
+/* Only one of the two theme glyphs shows at a time — whichever represents the
+ * theme you'd switch *to*. Driven purely by the data-theme attribute + the
+ * media query, so it stays correct before the toggle script ever runs. */
+.tt-iconbtn .i-moon { display: block; }
+.tt-iconbtn .i-sun { display: none; }
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) .tt-iconbtn .i-moon { display: none; }
+	:root:not([data-theme="light"]) .tt-iconbtn .i-sun { display: block; }
+}
+:root[data-theme="dark"] .tt-iconbtn .i-moon { display: none; }
+:root[data-theme="dark"] .tt-iconbtn .i-sun { display: block; }
+:root[data-theme="light"] .tt-iconbtn .i-moon { display: block; }
+:root[data-theme="light"] .tt-iconbtn .i-sun { display: none; }
+
+.tt-burger { display: none; }
+
+/* ---------- footer ---------- */
+.tt-footer { border-top: 1px solid var(--tt-line); background: var(--tt-card); margin-top: 60px; }
+.tt-footer .cols { max-width: 1200px; margin: 0 auto; padding: 44px 20px 30px;
+	display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 30px; }
+.tt-footer .col h3 { font-family: var(--tt-mono); font-size: 11px; letter-spacing: .08em;
+	text-transform: uppercase; color: var(--tt-ink-soft); font-weight: 600; margin: 0 0 12px; }
+.tt-footer .col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tt-footer .col a { font-size: 14px; color: var(--tt-ink-soft); text-decoration: none; }
+.tt-footer .col a:hover { color: var(--tt-accent-ink); text-decoration: underline; }
+.tt-footer .about p { font-size: 14px; color: var(--tt-ink-soft); margin: 10px 0 0; max-width: 34ch; }
+.tt-footer .legal { max-width: 1200px; margin: 0 auto; padding: 18px 20px 34px;
+	border-top: 1px solid var(--tt-line-soft); display: flex; flex-wrap: wrap; gap: 12px;
+	align-items: center; justify-content: space-between;
+	font-family: var(--tt-mono); font-size: 12px; color: var(--tt-ink-soft); }
+/* :not(.lg) so this doesn't outrank .lg.active's inverted text colour — the
+ * language switcher renders inside this bar, and at (0,3,1) this selector
+ * beat .lg.active (0,2,0), leaving the active pill's dark-grey text on its
+ * own dark background at 2.6:1. */
+.tt-footer .legal a:not(.lg) { color: var(--tt-ink-soft); }
+
+/* =========================================================== homepage
+ * Centred hero + CTA row + quick-copy keycap grid. The keycaps here are the
+ * same .keycap component (and the same copy handler) as the character pages,
+ * just at a smaller --sz.
+ */
+.tt-page .home-hero { text-align: center; max-width: 720px; margin: 26px auto 0; }
+.tt-page .home-hero h1 { font-size: clamp(32px, 5.2vw, 52px); margin: 12px 0 14px; }
+.tt-page .home-hero .sub { font-size: 17px; color: var(--tt-ink-soft); margin: 0 auto; max-width: 56ch; }
+
+.tt-page .ctarow { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 24px 0 8px; }
+.tt-page .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--tt-body);
+	font-size: 14px; font-weight: 600; text-decoration: none; padding: 11px 20px;
+	border-radius: 10px; border: 1px solid var(--tt-line); background: var(--tt-card); color: var(--tt-ink); }
+.tt-page .btn:hover { border-color: var(--tt-accent); color: var(--tt-accent-ink); }
+.tt-page .btn.primary { background: var(--tt-accent); border-color: var(--tt-accent); color: #fff; }
+.tt-page .btn.primary:hover { background: var(--tt-accent-ink); border-color: var(--tt-accent-ink); color: #fff; }
+.tt-page .btn:focus-visible { outline: 3px solid var(--tt-accent); outline-offset: 2px; }
+
+.tt-page .chiprow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 16px 0 0; }
+.tt-page .qchip { font-family: var(--tt-mono); font-size: 12px; text-decoration: none; color: var(--tt-ink-soft);
+	border: 1px solid var(--tt-line); background: var(--tt-card); border-radius: 999px; padding: 5px 13px; }
+.tt-page .qchip:hover { border-color: var(--tt-accent); color: var(--tt-accent); }
+
+.tt-page .sechead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.tt-page .sechead .more { font-family: var(--tt-mono); font-size: 12px; text-decoration: none; color: var(--tt-accent-ink); white-space: nowrap; }
+
+/* Quick-copy grid — dense, tappable, one click copies. */
+.tt-page .quickgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 12px; }
+.tt-page .qcell { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.tt-page .qcell .keycap { --sz: 100%; aspect-ratio: 1; height: auto; border-radius: 12px; }
+.tt-page .qcell .keycap .glyph { font-size: 27px; }
+.tt-page .qcell .lb { font-family: var(--tt-mono); font-size: 10.5px; color: var(--tt-ink-soft);
+	text-align: center; line-height: 1.3; }
+
+/* Tool cards with benefit bullets. */
+.tt-page .toolgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.tt-page .toolcard { display: flex; flex-direction: column; background: var(--tt-card); border: 1px solid var(--tt-line);
+	border-radius: var(--tt-r); padding: 20px; box-shadow: var(--tt-shadow); text-decoration: none; }
+.tt-page .toolcard .t { font-family: var(--tt-disp); font-weight: 600; font-size: 16px; color: var(--tt-ink); }
+.tt-page .toolcard .d { font-size: 14px; color: var(--tt-ink-soft); margin: 6px 0 12px; }
+.tt-page .toolcard ul { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 6px; }
+.tt-page .toolcard li { font-size: 13px; color: var(--tt-ink-soft); display: flex; gap: 8px; align-items: flex-start; }
+.tt-page .toolcard li::before { content: "\2713"; color: var(--tt-ok); font-family: var(--tt-mono); flex-shrink: 0; }
+.tt-page .toolcard .go { margin-top: auto; font-family: var(--tt-body); font-size: 13px; font-weight: 600;
+	color: var(--tt-accent-ink); border: 1px solid var(--tt-line); border-radius: 9px;
+	padding: 9px 0; text-align: center; }
+.tt-page .toolcard:hover { border-color: var(--tt-accent); }
+.tt-page .toolcard:hover .go { border-color: var(--tt-accent); background: var(--tt-accent-wash); }
+
+/* GeneratePress lays .site-content out as a flex row (content + sidebar), so a
+ * <main> with no width declared shrink-wraps to its .wrap child's 860px and
+ * sits flush left in the 1200px container instead of centring. Everything
+ * looked correct at narrow widths, which is why it survived to here — it only
+ * shows above ~1000px. width:100% makes main fill the row so .wrap's
+ * margin:0 auto can actually centre it. */
+.tt-page { width: 100%; }
+
+/* Homepage runs wider than the 860px reading measure used by article pages. */
+.tt-page.homepage-main .wrap { max-width: 1200px; }
+
+@media (max-width: 900px) {
+	.tt-footer .cols { grid-template-columns: 1fr 1fr; gap: 26px; }
+}
+@media (max-width: 780px) {
+	/* Nav collapses behind the burger; the toggle stays visible at all widths. */
+	.tt-nav { position: absolute; top: 62px; left: 0; right: 0; background: var(--tt-card);
+		border-bottom: 1px solid var(--tt-line); flex-direction: column; align-items: stretch;
+		gap: 0; padding: 8px; display: none; box-shadow: var(--tt-shadow); }
+	.tt-nav.open { display: flex; }
+	.tt-nav a { padding: 11px 14px; font-size: 15px; }
+	.tt-burger { display: grid; }
+	.tt-header .bar { gap: 10px; }
+	.tt-header .util { margin-left: auto; }
+}
+@media (max-width: 560px) {
+	.tt-footer .cols { grid-template-columns: 1fr; }
+	.tt-page .quickgrid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+	.tt-page .btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 640px) {
+	.tt-page .plat { grid-template-columns: 1fr; }
+	.tt-page .hero { flex-direction: column; align-items: flex-start; gap: 18px; }
+	.tt-page .gen-row { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.tt-page *, .keycap, .copied { transition: none !important; }
+}

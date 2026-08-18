@@ -1,0 +1,15 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TypeThem">
+  <defs>
+    <linearGradient id="tt-ap" x1="20" y1="20" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B3BE0"/>
+      <stop offset="1" stop-color="#2D5BE0"/>
+    </linearGradient>
+  </defs>
+  <!-- full-bleed: iOS applies its own rounded mask, so no transparent corners -->
+  <rect x="0" y="0" width="180" height="180" fill="url(#tt-ap)"/>
+  <g fill="#FFFFFF">
+    <rect x="79" y="42" width="20" height="92" rx="10"/>
+    <rect x="57" y="63" width="64" height="20" rx="10"/>
+    <path d="M99 114c0 11.7 7.5 18.4 19 18.4v-18.7c-3.6 0-5.6-2-5.6-5.9V102H99v12z"/>
+  </g>
+</svg>
