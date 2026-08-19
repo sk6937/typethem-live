@@ -209,7 +209,11 @@ body.tt-app {
 
 /* ---------- related keycap row ---------- */
 .tt-page .rel { display: flex; gap: 12px; flex-wrap: wrap; }
-.tt-page .rel a { display: grid; place-items: center; gap: 6px; text-decoration: none; color: var(--tt-ink-soft); font-size: 12px; font-family: var(--tt-mono); }
+.tt-page .rel a { display: grid; place-items: center; gap: 6px; text-decoration: none; color: var(--tt-ink-soft); font-size: 12px; font-family: var(--tt-mono); transition: color .12s ease; }
+/* The keycap copies; the surrounding link opens the page. Recolour + underline
+   the label on hover/focus so the link affordance reads as distinct from copy. */
+.tt-page .rel a:hover, .tt-page .rel a:focus-visible { color: var(--tt-accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+.tt-page .rel a:hover .keycap, .tt-page .rel a:focus-visible .keycap { border-color: var(--tt-accent); }
 
 /* ---------- faq ---------- */
 .tt-page .faq details { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 12px; padding: 2px 18px; margin-bottom: 10px; box-shadow: var(--tt-shadow); }
