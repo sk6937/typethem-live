@@ -207,13 +207,36 @@ body.tt-app {
 .tt-page .words { font-family: var(--tt-disp); font-size: 20px; color: var(--tt-ink); letter-spacing: .01em; }
 .tt-page .words span { color: var(--tt-accent); }
 
-/* ---------- related keycap row ---------- */
-.tt-page .rel { display: flex; gap: 12px; flex-wrap: wrap; }
-.tt-page .rel a { display: grid; place-items: center; gap: 6px; text-decoration: none; color: var(--tt-ink-soft); font-size: 12px; font-family: var(--tt-mono); transition: color .12s ease; }
-/* The keycap copies; the surrounding link opens the page. Recolour + underline
-   the label on hover/focus so the link affordance reads as distinct from copy. */
-.tt-page .rel a:hover, .tt-page .rel a:focus-visible { color: var(--tt-accent-ink); text-decoration: underline; text-underline-offset: 2px; }
+/* ---------- keycap tile grid (members / related / confusables) ----------
+   An even, self-aligning grid of tiles instead of a ragged flex row: each
+   character/guide is a card with the keycap on top and a clamped label under
+   it, so long Unicode names can't blow out the row height. The keycap still
+   copies; the surrounding card links to the page (border + lift on hover mark
+   the link affordance as distinct from the copy press). */
+.tt-page .rel { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.tt-page .rel a {
+	display: flex; flex-direction: column; align-items: center; gap: 9px;
+	padding: 15px 8px 13px; background: var(--tt-card); border: 1px solid var(--tt-line);
+	border-radius: 12px; text-decoration: none; color: var(--tt-ink-soft);
+	font-size: 11.5px; font-family: var(--tt-mono); line-height: 1.35; text-align: center;
+	transition: border-color .12s ease, color .12s ease, box-shadow .12s ease, transform .12s ease;
+}
+.tt-page .rel a .label { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tt-page .rel a:hover, .tt-page .rel a:focus-visible {
+	color: var(--tt-accent-ink); border-color: var(--tt-accent); box-shadow: var(--tt-shadow); transform: translateY(-1px);
+}
 .tt-page .rel a:hover .keycap, .tt-page .rel a:focus-visible .keycap { border-color: var(--tt-accent); }
+@media (prefers-reduced-motion: reduce) { .tt-page .rel a { transition: none; } .tt-page .rel a:hover, .tt-page .rel a:focus-visible { transform: none; } }
+
+/* collapsed state: hide overflow tiles until the load-more button expands them */
+.tt-page .rel.tt-collapsed a.tt-hidden { display: none; }
+.tt-page .loadmore {
+	margin-top: 16px; display: inline-flex; align-items: center; gap: 8px;
+	background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 999px;
+	padding: 9px 18px; font-family: var(--tt-mono); font-size: 13px; color: var(--tt-ink);
+	cursor: pointer; transition: border-color .12s ease, color .12s ease;
+}
+.tt-page .loadmore:hover, .tt-page .loadmore:focus-visible { border-color: var(--tt-accent); color: var(--tt-accent-ink); outline: none; }
 
 /* ---------- faq ---------- */
 .tt-page .faq details { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: 12px; padding: 2px 18px; margin-bottom: 10px; box-shadow: var(--tt-shadow); }
@@ -298,6 +321,28 @@ body.tt-app {
 .tt-page .gen-row .style { font-family: var(--tt-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
 	color: var(--tt-ink-soft); width: 110px; flex-shrink: 0; }
 .tt-page .gen-row .out { flex: 1; font-size: 18px; color: var(--tt-ink); word-break: break-word; }
+
+/* Flagship generator: name filter + show-more toggle */
+.tt-page .gen-filter-wrap { margin-top: 14px; }
+.tt-page .gen-filter { width: 100%; font-family: var(--tt-mono); font-size: 14px; border: 1.5px solid var(--tt-line);
+	border-radius: 10px; padding: 10px 14px; color: var(--tt-ink); background: var(--tt-paper); }
+.tt-page .gen-filter:focus { outline: 0; border-color: var(--tt-accent); background: var(--tt-card); }
+.tt-page .gen-toggle { margin-top: 16px; font-family: var(--tt-mono); font-size: 13px; font-weight: 600;
+	color: var(--tt-accent-ink); background: var(--tt-card); border: 1.5px solid var(--tt-line); border-radius: 10px;
+	padding: 11px 18px; cursor: pointer; }
+.tt-page .gen-toggle:hover, .tt-page .gen-toggle:focus-visible { border-color: var(--tt-accent); outline: 0; }
+.tt-page .gen-toggle[hidden] { display: none; }
+
+/* "Good to know" caveat list */
+.tt-page .checks { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
+.tt-page .checks li { position: relative; padding-left: 22px; color: var(--tt-ink); line-height: 1.55; }
+.tt-page .checks li::before { content: "•"; position: absolute; left: 4px; top: 0; color: var(--tt-accent); font-weight: 700; }
+
+/* Per-style guide: single-style generator result + copyable alphabet */
+.tt-page .style-result { display: flex; align-items: center; gap: 12px; margin-top: 16px; background: var(--tt-card);
+	border: 1px solid var(--tt-line); border-radius: 12px; padding: 16px 18px; box-shadow: var(--tt-shadow); }
+.tt-page .style-result .out { flex: 1; font-size: 24px; color: var(--tt-ink); word-break: break-word; min-width: 0; }
+.tt-page .dt.alpha td.glyphs { font-size: 20px; line-height: 1.5; word-break: break-word; }
 
 /* =========================================================== site chrome
  * Header + footer replace GeneratePress's own (see functions.php, which

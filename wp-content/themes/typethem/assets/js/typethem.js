@@ -82,4 +82,35 @@
 			burger.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
 		} );
 	}
+
+	/*
+	 * Load-more for keycap tile grids (.rel). Big sets like "Characters in this
+	 * set" can hold 20-48 tiles, which swamps the page — so collapse any grid
+	 * past LIMIT tiles and inject a pill button to reveal the rest. All tiles
+	 * stay in the DOM (links remain crawlable for SEO); only their display is
+	 * toggled. Runs at top level for the same footer-enqueue reason as above.
+	 */
+	var LIMIT = 6;
+	Array.prototype.forEach.call( document.querySelectorAll( '.tt-page .rel' ), function ( row ) {
+		var items = row.querySelectorAll( ':scope > a' );
+		if ( items.length <= LIMIT ) return;
+		for ( var i = LIMIT; i < items.length; i++ ) {
+			items[ i ].classList.add( 'tt-hidden' );
+		}
+		row.classList.add( 'tt-collapsed' );
+
+		var btn = document.createElement( 'button' );
+		btn.type = 'button';
+		btn.className = 'loadmore';
+		btn.setAttribute( 'aria-expanded', 'false' );
+		var labelMore = 'Show all ' + items.length + ' ↓';
+		var labelLess = 'Show fewer ↑';
+		btn.textContent = labelMore;
+		btn.addEventListener( 'click', function () {
+			var collapsed = row.classList.toggle( 'tt-collapsed' );
+			btn.setAttribute( 'aria-expanded', collapsed ? 'false' : 'true' );
+			btn.textContent = collapsed ? labelMore : labelLess;
+		} );
+		row.parentNode.insertBefore( btn, row.nextSibling );
+	} );
 } )();
