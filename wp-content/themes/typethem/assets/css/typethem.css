@@ -538,3 +538,36 @@ body.tt-app {
 @media (prefers-reduced-motion: reduce) {
 	.tt-page *, .keycap, .copied { transition: none !important; }
 }
+
+/* Cookie-consent banner. Deliberately NOT scoped under .tt-page — it's printed in
+   the footer, outside the article container (a .tt-page-scoped rule would never
+   reach it; see the footer-scoping lesson in the theme notes). Uses the same
+   --tt-* tokens as everything else, so it's light/dark-correct with no extra
+   declarations. */
+.tt-consent {
+	position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 200;
+	max-width: 760px; margin-inline: auto;
+	display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+	background: var(--tt-card); border: 1px solid var(--tt-line);
+	border-radius: var(--tt-r); padding: 15px 18px; box-shadow: var(--tt-shadow);
+}
+.tt-consent[hidden] { display: none; }
+.tt-consent-msg { margin: 0; flex: 1 1 340px; font-size: 14px; line-height: 1.5; color: var(--tt-ink); }
+.tt-consent-msg a { color: var(--tt-accent-ink); text-decoration: underline; }
+.tt-consent-actions { display: flex; gap: 10px; flex: 0 0 auto; }
+.tt-consent-btn {
+	font: inherit; font-size: 14px; font-weight: 500; padding: 9px 18px;
+	border-radius: 8px; border: 1px solid var(--tt-line);
+	background: var(--tt-paper); color: var(--tt-ink); cursor: pointer;
+}
+.tt-consent-btn:hover { border-color: var(--tt-accent); }
+.tt-consent-btn.primary { background: var(--tt-accent); border-color: var(--tt-accent); color: #fff; }
+.tt-consent-btn:focus-visible { outline: 2px solid var(--tt-accent); outline-offset: 2px; }
+@media (max-width: 560px) {
+	.tt-consent { flex-direction: column; align-items: stretch; gap: 12px; left: 10px; right: 10px; bottom: 10px; }
+	/* In column layout the flex main axis is vertical, so the row-layout
+	   flex-basis (340px) would become a 340px HEIGHT — reset it to content. */
+	.tt-consent-msg { flex: 0 0 auto; }
+	.tt-consent-actions { justify-content: stretch; }
+	.tt-consent-btn { flex: 1; }
+}

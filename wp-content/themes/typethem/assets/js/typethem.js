@@ -84,6 +84,31 @@
 	}
 
 	/*
+	 * Cookie-consent banner. The <head> bootstrap (functions.php) has already set
+	 * Consent Mode to denied and re-granted analytics for a returning visitor who
+	 * accepted; this only shows the banner when there's no stored choice yet, and
+	 * records the click. Accepting flips analytics_storage to granted for GA4 in
+	 * this pageview too (not just the next). Top-level for the footer-enqueue
+	 * reason above.
+	 */
+	var consent = document.getElementById( 'tt-consent' );
+	if ( consent ) {
+		var stored = null;
+		try { stored = localStorage.getItem( 'tt_consent' ); } catch ( e ) {}
+		if ( stored !== 'granted' && stored !== 'denied' ) { consent.hidden = false; }
+		consent.addEventListener( 'click', function ( ev ) {
+			var b = ev.target.closest( '[data-consent]' );
+			if ( ! b ) return;
+			var choice = b.getAttribute( 'data-consent' ) === 'accept' ? 'granted' : 'denied';
+			try { localStorage.setItem( 'tt_consent', choice ); } catch ( e ) {}
+			if ( choice === 'granted' && typeof window.gtag === 'function' ) {
+				window.gtag( 'consent', 'update', { analytics_storage: 'granted' } );
+			}
+			consent.hidden = true;
+		} );
+	}
+
+	/*
 	 * Load-more for keycap tile grids (.rel). Big sets like "Characters in this
 	 * set" can hold 20-48 tiles, which swamps the page — so collapse any grid
 	 * past LIMIT tiles and inject a pill button to reveal the rest. All tiles
