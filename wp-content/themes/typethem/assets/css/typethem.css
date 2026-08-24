@@ -495,6 +495,14 @@ body.tt-app {
 	.tt-page .plat { grid-template-columns: 1fr; }
 	.tt-page .hero { flex-direction: column; align-items: flex-start; gap: 18px; }
 	.tt-page .gen-row { flex-wrap: wrap; }
+	/* Data tables scroll inside their own box instead of pushing the page body
+	   sideways — the wide alt-code (5-col) and long-shortcut guide tables would
+	   otherwise force horizontal page scroll on phones. */
+	.tt-page .dt { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+	.tt-page .dt th, .tt-page .dt td { padding: 10px 11px; }
+	.tt-page .dt td.method { width: auto; }
+	/* Larger tap targets for in-table copy controls on touch screens. */
+	.tt-page .copybtn { padding: 9px 13px; font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) {
 	.tt-page *, .keycap, .copied { transition: none !important; }
