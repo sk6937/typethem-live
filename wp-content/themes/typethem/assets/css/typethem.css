@@ -539,22 +539,23 @@ body.tt-app {
 	.tt-page *, .keycap, .copied { transition: none !important; }
 }
 
-/* Cookie-consent banner. Deliberately NOT scoped under .tt-page — it's printed in
-   the footer, outside the article container (a .tt-page-scoped rule would never
-   reach it; see the footer-scoping lesson in the theme notes). Uses the same
-   --tt-* tokens as everything else, so it's light/dark-correct with no extra
-   declarations. */
+/* Categorized cookie-consent banner. Deliberately NOT scoped under .tt-page — it's
+   printed in the footer, outside the article container (a .tt-page-scoped rule
+   would never reach it; see the footer-scoping lesson in the theme notes). Uses
+   the same --tt-* tokens as everything else, so it's light/dark-correct with no
+   extra declarations. The banner is a column holding two panels (main / prefs);
+   .tt-consent-main is the flex row. */
 .tt-consent {
 	position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 200;
 	max-width: 760px; margin-inline: auto;
-	display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
 	background: var(--tt-card); border: 1px solid var(--tt-line);
 	border-radius: var(--tt-r); padding: 15px 18px; box-shadow: var(--tt-shadow);
 }
-.tt-consent[hidden] { display: none; }
+.tt-consent[hidden], .tt-consent-main[hidden], .tt-consent-prefs[hidden] { display: none; }
+.tt-consent-main { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .tt-consent-msg { margin: 0; flex: 1 1 340px; font-size: 14px; line-height: 1.5; color: var(--tt-ink); }
 .tt-consent-msg a { color: var(--tt-accent-ink); text-decoration: underline; }
-.tt-consent-actions { display: flex; gap: 10px; flex: 0 0 auto; }
+.tt-consent-actions { display: flex; gap: 10px; flex: 0 0 auto; flex-wrap: wrap; }
 .tt-consent-btn {
 	font: inherit; font-size: 14px; font-weight: 500; padding: 9px 18px;
 	border-radius: 8px; border: 1px solid var(--tt-line);
@@ -563,11 +564,29 @@ body.tt-app {
 .tt-consent-btn:hover { border-color: var(--tt-accent); }
 .tt-consent-btn.primary { background: var(--tt-accent); border-color: var(--tt-accent); color: #fff; }
 .tt-consent-btn:focus-visible { outline: 2px solid var(--tt-accent); outline-offset: 2px; }
+/* Per-category preferences panel */
+.tt-consent-prefs { display: flex; flex-direction: column; gap: 4px; }
+.tt-consent-cat {
+	display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+	padding: 12px 2px; border-bottom: 1px solid var(--tt-line-soft, var(--tt-line));
+}
+.tt-consent-cat-t { display: flex; flex-direction: column; gap: 3px; font-size: 14px; font-weight: 600; color: var(--tt-ink); }
+.tt-consent-cat-t small { font-weight: 400; font-size: 13px; line-height: 1.45; color: var(--tt-ink-soft); }
+.tt-consent-cat input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--tt-accent); cursor: pointer; }
+.tt-consent-cat input:disabled { cursor: default; opacity: .55; }
+.tt-consent-prefs .tt-consent-actions { margin-top: 12px; }
+/* Footer "Cookie preferences" reopen button — styled as a plain legal-bar link */
+.tt-cookie-link {
+	font: inherit; font-size: inherit; background: none; border: 0; padding: 0;
+	color: inherit; cursor: pointer; text-decoration: underline;
+}
+.tt-cookie-link:hover { color: var(--tt-accent-ink); }
 @media (max-width: 560px) {
-	.tt-consent { flex-direction: column; align-items: stretch; gap: 12px; left: 10px; right: 10px; bottom: 10px; }
+	.tt-consent { left: 10px; right: 10px; bottom: 10px; }
+	.tt-consent-main { flex-direction: column; align-items: stretch; gap: 12px; }
 	/* In column layout the flex main axis is vertical, so the row-layout
 	   flex-basis (340px) would become a 340px HEIGHT — reset it to content. */
 	.tt-consent-msg { flex: 0 0 auto; }
 	.tt-consent-actions { justify-content: stretch; }
-	.tt-consent-btn { flex: 1; }
+	.tt-consent-btn { flex: 1 1 auto; }
 }

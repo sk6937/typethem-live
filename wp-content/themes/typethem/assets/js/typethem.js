@@ -84,28 +84,78 @@
 	}
 
 	/*
-	 * Cookie-consent banner. The <head> bootstrap (functions.php) has already set
-	 * Consent Mode to denied and re-granted analytics for a returning visitor who
-	 * accepted; this only shows the banner when there's no stored choice yet, and
-	 * records the click. Accepting flips analytics_storage to granted for GA4 in
-	 * this pageview too (not just the next). Top-level for the footer-enqueue
-	 * reason above.
+	 * Categorized cookie-consent banner. The <head> bootstrap (functions.php) has
+	 * already set Consent Mode to denied and re-applied any stored per-category
+	 * choice before gtag/adsbygoogle ran; this handles the UI. The choice is stored
+	 * as JSON ({analytics, ads}) under 'tt_consent' and mapped to Consent Mode
+	 * signals — analytics->analytics_storage, ads->ad_storage/ad_user_data/
+	 * ad_personalization. "Accept all"/"Reject all" set every category; "Manage"
+	 * reveals per-category toggles; the footer "Cookie preferences" button reopens
+	 * it so consent can be withdrawn. Top-level for the footer-enqueue reason above.
 	 */
 	var consent = document.getElementById( 'tt-consent' );
 	if ( consent ) {
-		var stored = null;
-		try { stored = localStorage.getItem( 'tt_consent' ); } catch ( e ) {}
-		if ( stored !== 'granted' && stored !== 'denied' ) { consent.hidden = false; }
-		consent.addEventListener( 'click', function ( ev ) {
-			var b = ev.target.closest( '[data-consent]' );
-			if ( ! b ) return;
-			var choice = b.getAttribute( 'data-consent' ) === 'accept' ? 'granted' : 'denied';
-			try { localStorage.setItem( 'tt_consent', choice ); } catch ( e ) {}
-			if ( choice === 'granted' && typeof window.gtag === 'function' ) {
-				window.gtag( 'consent', 'update', { analytics_storage: 'granted' } );
+		var consentMain = consent.querySelector( '.tt-consent-main' );
+		var consentPrefs = consent.querySelector( '.tt-consent-prefs' );
+		var catInputs = consent.querySelectorAll( '[data-consent-cat]' );
+		var adsPresent = !! consent.querySelector( '[data-consent-cat="ads"]' );
+
+		var readStored = function () {
+			try {
+				var raw = localStorage.getItem( 'tt_consent' );
+				if ( ! raw ) { return null; }
+				if ( raw.charAt( 0 ) === '{' ) { return JSON.parse( raw ); }
+				return { analytics: raw === 'granted', ads: false }; // migrate legacy string
+			} catch ( e ) { return null; }
+		};
+
+		var applyChoice = function ( choice ) {
+			try { localStorage.setItem( 'tt_consent', JSON.stringify( choice ) ); } catch ( e ) {}
+			if ( typeof window.gtag === 'function' ) {
+				window.gtag( 'consent', 'update', {
+					analytics_storage:  choice.analytics ? 'granted' : 'denied',
+					ad_storage:         choice.ads ? 'granted' : 'denied',
+					ad_user_data:       choice.ads ? 'granted' : 'denied',
+					ad_personalization: choice.ads ? 'granted' : 'denied'
+				} );
 			}
 			consent.hidden = true;
+			if ( consentPrefs ) { consentPrefs.hidden = true; }
+			if ( consentMain ) { consentMain.hidden = false; }
+		};
+
+		var openConsent = function ( showPrefs ) {
+			var cur = readStored() || { analytics: false, ads: false };
+			Array.prototype.forEach.call( catInputs, function ( inp ) {
+				inp.checked = !! cur[ inp.getAttribute( 'data-consent-cat' ) ];
+			} );
+			if ( consentMain ) { consentMain.hidden = !! showPrefs; }
+			if ( consentPrefs ) { consentPrefs.hidden = ! showPrefs; }
+			consent.hidden = false;
+		};
+
+		if ( ! readStored() ) { openConsent( false ); }
+
+		consent.addEventListener( 'click', function ( ev ) {
+			var b = ev.target.closest( '[data-consent-action]' );
+			if ( ! b ) { return; }
+			var act = b.getAttribute( 'data-consent-action' );
+			if ( act === 'accept' ) { applyChoice( { analytics: true, ads: adsPresent } ); }
+			else if ( act === 'reject' ) { applyChoice( { analytics: false, ads: false } ); }
+			else if ( act === 'manage' ) { openConsent( true ); }
+			else if ( act === 'save' ) {
+				var choice = { analytics: false, ads: false };
+				Array.prototype.forEach.call( catInputs, function ( inp ) {
+					choice[ inp.getAttribute( 'data-consent-cat' ) ] = inp.checked;
+				} );
+				applyChoice( choice );
+			}
 		} );
+
+		var reopen = document.getElementById( 'tt-cookie-settings' );
+		if ( reopen ) {
+			reopen.addEventListener( 'click', function () { openConsent( true ); } );
+		}
 	}
 
 	/*
