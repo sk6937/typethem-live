@@ -129,6 +129,7 @@ body.tt-app {
 /* ---------- crumb ---------- */
 .tt-page .crumb { font-size: 13px; color: var(--tt-ink-soft); margin-bottom: 22px; font-family: var(--tt-mono); }
 .tt-page .crumb a { color: var(--tt-ink-soft); text-decoration: none; }
+.tt-page .crumb a:hover, .tt-page .crumb a:focus-visible { color: var(--tt-accent-ink); text-decoration: underline; }
 .tt-page .eyebrow { font-family: var(--tt-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--tt-accent); font-weight: 500; }
 
 /* ---------- keycap (the signature element) ---------- */
@@ -285,9 +286,15 @@ body.tt-app {
 .tt-page .searchbox { background: var(--tt-card); border: 1px solid var(--tt-line); border-radius: var(--tt-r);
 	padding: 18px 20px; box-shadow: var(--tt-shadow); margin: 0 0 24px; }
 .tt-page .searchbox input { width: 100%; font-family: var(--tt-disp); font-size: 22px; border: 1.5px solid var(--tt-line);
-	border-radius: 10px; padding: 12px 14px; color: var(--tt-ink); background: var(--tt-paper); }
+	border-radius: 10px; padding: 12px 14px; color: var(--tt-ink); -webkit-text-fill-color: var(--tt-ink); background: var(--tt-paper); }
 .tt-page .searchbox input:focus { outline: 0; border-color: var(--tt-accent); background: var(--tt-card); }
 .tt-page .searchbox .hint { font-family: var(--tt-mono); font-size: 12px; color: var(--tt-ink-soft); margin-top: 8px; }
+
+/* Typed text must stay theme-ink even under browser autofill / -webkit-text-fill quirks;
+   placeholder gets an explicit legible muted tone (UA default #757575 is too dim on dark). */
+.tt-page .tester input, .tt-page .searchbox input { -webkit-text-fill-color: var(--tt-ink); caret-color: var(--tt-ink); }
+.tt-page .tester input::placeholder, .tt-page .searchbox input::placeholder { color: var(--tt-ink-soft); -webkit-text-fill-color: var(--tt-ink-soft); opacity: 1; }
+.tt-page .tester input:-webkit-autofill, .tt-page .searchbox input:-webkit-autofill { -webkit-text-fill-color: var(--tt-ink); -webkit-box-shadow: 0 0 0 1000px var(--tt-paper) inset; caret-color: var(--tt-ink); }
 
 .tt-page .results { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 18px; }
 .tt-page .rescard { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--tt-card);
