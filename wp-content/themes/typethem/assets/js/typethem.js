@@ -90,8 +90,11 @@
 	 * stay in the DOM (links remain crawlable for SEO); only their display is
 	 * toggled. Runs at top level for the same footer-enqueue reason as above.
 	 */
-	var LIMIT = 6;
 	Array.prototype.forEach.call( document.querySelectorAll( '.tt-page .rel' ), function ( row ) {
+		// Related-character rows stay tight at 6; a collection-facet grid IS the
+		// page's primary content (up to ~150 tiles), so it shows a generous set
+		// before the "Show all" pill.
+		var LIMIT = row.classList.contains( 'rel-facet' ) ? 48 : 6;
 		var items = row.querySelectorAll( ':scope > a' );
 		if ( items.length <= LIMIT ) return;
 		for ( var i = LIMIT; i < items.length; i++ ) {
