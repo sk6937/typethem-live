@@ -333,6 +333,18 @@ body.tt-app {
 .tt-page .hubcard .t { font-family: var(--tt-disp); font-weight: 600; color: var(--tt-ink); font-size: 15px; }
 .tt-page .hubcard .sub { font-family: var(--tt-mono); font-size: 12px; color: var(--tt-ink-soft); margin-top: 4px; display: block; }
 
+/* Compact link list — used by the pillar hubs for the long single-symbol and
+   concept-guide runs, where 90+ cards would bury the rest of the page. Every
+   link stays in the DOM; nothing is collapsed behind a toggle. */
+.tt-page .linklist { list-style: none; margin: 0; padding: 0; display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 18px; }
+.tt-page .linklist li { margin: 0; }
+.tt-page .linklist a { display: flex; align-items: baseline; gap: 9px; padding: 8px 0;
+	font-size: 14px; color: var(--tt-ink); text-decoration: none; border-bottom: 1px solid var(--tt-line); }
+.tt-page .linklist a:hover, .tt-page .linklist a:focus-visible { color: var(--tt-accent-ink); text-decoration: underline; }
+.tt-page .linklist .g { font-family: var(--tt-disp); font-size: 16px; color: var(--tt-ink-soft);
+	min-width: 20px; text-align: center; flex: 0 0 auto; }
+
 /* ---------- Phase 5: accent builder ---------- */
 .tt-page .builder { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .tt-page .builder select { font-family: var(--tt-mono); font-size: 14px; border: 1.5px solid var(--tt-line); border-radius: 8px;
